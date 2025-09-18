@@ -68,15 +68,22 @@ class Application(tk.Tk):
         
     def show_color_bars(self) -> None:
         img = self.images_data[self.image_index]
+        
+        # img is a multi-dimensional array, last index corresponds to the image's color channel
         pixels_sum = [np.sum(img[:, :, i]) for i in range(3)]
+        
         bar_names = ['red', 'green', 'blue']
         bar_colors = ['red', 'green', 'blue']
         
-        plt.close('all')
+        x_label = f'r: {pixels_sum[0]}, g: {pixels_sum[1]}, b: {pixels_sum[2]}'
+        print(x_label)
+        
+        plt.close('all') # close all windows, so one image does not get stuck (optional)
         plt.bar(bar_names, pixels_sum, color=bar_colors)
-        plt.xlabel(f'r: {pixels_sum[0]}, g: {pixels_sum[1]}, b: {pixels_sum[2]}')
+        
+        plt.xlabel(x_label)
         plt.ylabel('Pixels of colors by channels')
-        # plt.legend()
+        
         plt.show()
             
 if __name__ == "__main__":
