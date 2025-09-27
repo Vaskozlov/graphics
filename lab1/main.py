@@ -70,12 +70,12 @@ class Application(tk.Tk):
         img = self.images_data[self.image_index]
         
         # img is a multi-dimensional array, last index corresponds to the image's color channel
-        pixels_sum = [np.sum(img[:, :, i]) for i in range(3)]
+        pixels_sum = [np.mean(img[:, :, i]) for i in range(3)]
         
         bar_names = ['red', 'green', 'blue']
         bar_colors = ['red', 'green', 'blue']
         
-        x_label = f'r: {pixels_sum[0]}, g: {pixels_sum[1]}, b: {pixels_sum[2]}'
+        x_label = f'r: {pixels_sum[0]:.2f}, g: {pixels_sum[1]:.2f}, b: {pixels_sum[2]:.2f}'
         print(x_label)
         
         plt.close('all') # close all windows, so one image does not get stuck (optional)
