@@ -21,7 +21,7 @@ class Application(tk.Tk):
         # resizing images, so than they can fit on the screen
         self.raw_images = [self.resize_image(image, (600, 400)) for image in self.raw_images]
 
-        # converting images to np.array, so we can easily compute sum of colors by channels
+        # converting images to np.array, so we can easily compute mean of colors by channels
         self.images_data = [np.array(image.convert('RGBA')) for image in self.raw_images]
         
         # converting images to tkinter format
@@ -50,7 +50,7 @@ class Application(tk.Tk):
         tk.Button(
             self,
             width=25,
-            text="Show sum of colors by channels",
+            text="Show mean of colors by channels",
             command= lambda : self.show_color_bars()
         ).pack(anchor='nw', pady=5)
         
@@ -70,19 +70,19 @@ class Application(tk.Tk):
         img = self.images_data[self.image_index]
         
         # img is a multi-dimensional array, last index corresponds to the image's color channel
-        pixels_sum = [np.mean(img[:, :, i]) for i in range(3)]
+        pixels_mean = [np.mean(img[:, :, i]) for i in range(3)]
         
         bar_names = ['red', 'green', 'blue']
         bar_colors = ['red', 'green', 'blue']
         
-        x_label = f'r: {pixels_sum[0]:.2f}, g: {pixels_sum[1]:.2f}, b: {pixels_sum[2]:.2f}'
+        x_label = f'r: {pixels_mean[0]:.2f}, g: {pixels_mean[1]:.2f}, b: {pixels_mean[2]:.2f}'
         print(x_label)
         
         plt.close('all') # close all windows, so one image does not get stuck (optional)
-        plt.bar(bar_names, pixels_sum, color=bar_colors)
+        plt.bar(bar_names, pixels_mean, color=bar_colors)
         
         plt.xlabel(x_label)
-        plt.ylabel('Pixels of colors by channels')
+        plt.ylabel('Mean per-channel color')
         
         plt.show()
             
