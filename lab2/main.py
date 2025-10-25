@@ -6,6 +6,38 @@ from tkinter import filedialog, messagebox
 from PIL import ImageTk
 from PIL import ImageFilter
 import matplotlib.pyplot as plt
+from scipy.signal import convolve2d
+
+def gaussian_kernel(size, sigma=1.0):
+    kernel_1d = np.linspace(-(size // 2), size // 2, size)
+    
+    kernel_1d = np.exp(-0.5 * (kernel_1d / sigma) ** 2)
+    kernel_1d = kernel_1d / (sigma * np.sqrt(2 * np.pi))
+    
+    kernel_1d = kernel_1d / kernel_1d.sum()
+    kernel_2d = np.outer(kernel_1d, kernel_1d)
+    
+    return kernel_2d
+
+def apply_gaussian_blur_manual(image_array, sigma=1.0, kernel_size=None):
+    if kernel_size is None:
+        kernel_size = int(6 * sigma + 1)
+        kernel_size = kernel_size if kernel_size % 2 == 1 else kernel_size + 1
+    
+    kernel = gaussian_kernel(kernel_size, sigma)
+    
+    if image_array.ndim == 2:
+        blurred = convolve2d(image_array, kernel, mode='same', boundary='symm')
+    else:
+        blurred = np.zeros_like(image_array)
+        for i in range(3):
+            blurred[:, :, i] = convolve2d(
+                image_array[:, :, i], kernel, mode='same', boundary='symm'
+            )
+
+        blurred[:, :, 3] = image_array[:, :, 3]
+    
+    return blurred.astype(image_array.dtype)
 
 class Application(tk.Tk):
     def __init__(self, width: int, height: int, title: str, images_path: tuple):
@@ -88,6 +120,15 @@ class Application(tk.Tk):
                 width=25,
                 text="Download",
                 command = self.download_image
+            ).place(x=x_position, y=y_value)
+
+        y_value += y_change
+        
+        tk.Button(
+                self,
+                width=25,
+                text="Greyscale",
+                command = self.convert_grayscale
             ).place(x=x_position, y=y_value)
         
         
@@ -191,17 +232,29 @@ class Application(tk.Tk):
         
         return PIL.Image.fromarray(img_array.astype(np.uint8))
     
+    def apply_greyscale(self, image):
+        img_array = np.array(image, dtype=np.float32)
+
+        m = img_array[:, :, 0] + img_array[:, :, 1] + img_array[:, :, 2]
+        
+        img_array[:, :, 0] = m / 3
+        img_array[:, :, 1] = m / 3
+        img_array[:, :, 2] = m / 3
+        img_array[:, :, :3] = np.clip(img_array[:, :, :3], 0, 255)
+        
+        return PIL.Image.fromarray(img_array.astype(np.uint8))
+    
     def apply_processing(self):
         processed_image = self.raw_images[self.image_index].copy()
         
         if self.grayscale:
-            processed_image = processed_image.convert('L').convert('RGBA')
+            processed_image = self.apply_greyscale(processed_image.convert('RGBA'))
         
         if self.inverted:
             processed_image = self.apply_invert(processed_image)
         
         if self.blurred:
-            processed_image = processed_image.convert('RGBA').filter(PIL.ImageFilter.BLUR)
+            processed_image = PIL.Image.fromarray(apply_gaussian_blur_manual(np.array(processed_image.convert('RGBA')),  1))
         
         if self.brightness != 0 or self.contrast != 1.0:
             processed_image = self.adjust_brightness_contrast(
@@ -226,12 +279,10 @@ class Application(tk.Tk):
         self.apply_processing()
         
     def adjust_brightness(self, value):
-        """Изменение яркости"""
         self.brightness += value
         self.apply_processing()
     
     def adjust_contrast(self, value):
-        """Изменение контраста"""
         self.contrast += value
         self.contrast = max(0.1, self.contrast)  # Минимальный контраст 0.1
         self.apply_processing()
