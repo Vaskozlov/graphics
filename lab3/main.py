@@ -52,17 +52,34 @@ def compute_illum():
     cb.set_label('Illuminance (W/m²)')
     canvas1.draw()
 
-    # Cross-section graph through center (along X at y closest to y0)
-    row = np.argmin(np.abs(y - y0))
-    E_line = E[row, :]
-    x_line = x
+    # Cross-sections through center
     fig2.clf()
-    ax2 = fig2.add_subplot(111)
-    ax2.plot(x_line, E_line)
-    ax2.set_title('Cross-Section Through Center')
-    ax2.set_xlabel('X (mm)')
-    ax2.set_ylabel('Illuminance (W/m²)')
+
+    # Horizontal cross-section (along X at y closest to y0)
+    row = np.argmin(np.abs(y - y0))
+    E_line_horizontal = E[row, :]
+    x_line = x
+    ax2_horizontal = fig2.add_subplot(211)
+    ax2_horizontal.plot(x_line, E_line_horizontal)
+    ax2_horizontal.set_title('Horizontal Cross-Section (along X)')
+    ax2_horizontal.set_xlabel('X (mm)')
+    ax2_horizontal.set_ylabel('Illuminance (W/m²)')
+
+    # Vertical cross-section (along Y at x closest to x0)
+    col = np.argmin(np.abs(x - x0))
+    E_line_vertical = E[:, col]
+    y_line = y
+    ax2_vertical = fig2.add_subplot(212)
+    ax2_vertical.plot(y_line, E_line_vertical)
+    ax2_vertical.set_title('Vertical Cross-Section (along Y)')
+    ax2_vertical.set_xlabel('Y (mm)')
+    ax2_vertical.set_ylabel('Illuminance (W/m²)')
+
+    fig2.tight_layout()
     canvas2.draw()
+
+    # Save cross-section plot
+    fig2.savefig('cross_section.png')
 
     # Stats within circle
     mask = (X - x0)**2 + (Y - y0)**2 <= R**2
@@ -124,5 +141,3 @@ canvas1.get_tk_widget().pack(side="left", padx=10)
 fig2 = plt.Figure(figsize=(5, 4))
 canvas2 = FigureCanvasTkAgg(fig2, root)
 canvas2.get_tk_widget().pack(side="right", padx=10)
-
-root.mainloop()
