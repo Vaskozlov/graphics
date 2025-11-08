@@ -141,3 +141,5 @@ canvas1.get_tk_widget().pack(side="left", padx=10)
 fig2 = plt.Figure(figsize=(5, 4))
 canvas2 = FigureCanvasTkAgg(fig2, root)
 canvas2.get_tk_widget().pack(side="right", padx=10)
+
+root.mainloop()
