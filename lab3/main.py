@@ -18,8 +18,17 @@ def compute_illum():
         y0 = float(entry_y0.get())
         R = float(entry_R.get())
     except ValueError:
-        label_results.config(text="Invalid input")
+        label_results.config(text="Некорректный ввод")
         return
+
+    # Adjust Hres to ensure square pixels (same physical size in mm per pixel)
+    if W > 0:
+        pixel_size_x = W / Wres
+        desired_Hres = int(H / pixel_size_x + 0.5)
+        if desired_Hres != Hres:
+            Hres = desired_Hres
+            entry_Hres.delete(0, tk.END)
+            entry_Hres.insert(0, str(Hres))
 
     x = np.linspace(x0 - W/2, x0 + W/2, Wres)
     y = np.linspace(y0 - H/2, y0 + H/2, Hres)
@@ -32,6 +41,9 @@ def compute_illum():
     r4 = r2**2
     E = I0 * dz**2 / r4
 
+    mask = (X - x0)**2 + (Y - y0)**2 <= R**2
+    E[~mask] = 0.0
+
     max_E = np.max(E) if np.max(E) > 0 else 1.0 
     img = (E / max_E * 255).astype(np.uint8)
 
@@ -39,12 +51,13 @@ def compute_illum():
 
     fig1.clf()
     ax1 = fig1.add_subplot(111)
-    im = ax1.imshow(E, cmap='inferno', extent=[x.min(), x.max(), y.min(), y.max()], origin='lower')
-    ax1.set_title('Illumination Distribution')
-    ax1.set_xlabel('X (mm)')
-    ax1.set_ylabel('Y (mm)')
+    im = ax1.imshow(E, cmap='gray', extent=[x.min(), x.max(), y.min(), y.max()], origin='lower')
+    ax1.set_aspect('auto')
+    ax1.set_title('Распределение освещенности')
+    ax1.set_xlabel('X (мм)')
+    ax1.set_ylabel('Y (мм)')
     cb = fig1.colorbar(im, ax=ax1)
-    cb.set_label('Illuminance (W/m²)')
+    cb.set_label('Освещенность (Вт/м²)')
     canvas1.draw()
 
     fig2.clf()
@@ -54,25 +67,25 @@ def compute_illum():
     x_line = x
     ax2_horizontal = fig2.add_subplot(211)
     ax2_horizontal.plot(x_line, E_line_horizontal)
-    ax2_horizontal.set_title('Horizontal Cross-Section (along X)')
-    ax2_horizontal.set_xlabel('X (mm)')
-    ax2_horizontal.set_ylabel('Illuminance (W/m²)')
+    ax2_horizontal.set_title('Горизонтальное сечение (по X)')
+    ax2_horizontal.set_xlabel('X (мм)')
+    ax2_horizontal.set_ylabel('Освещенность (Вт/м²)')
 
     col = np.argmin(np.abs(x - x0))
     E_line_vertical = E[:, col]
     y_line = y
     ax2_vertical = fig2.add_subplot(212)
     ax2_vertical.plot(y_line, E_line_vertical)
-    ax2_vertical.set_title('Vertical Cross-Section (along Y)')
-    ax2_vertical.set_xlabel('Y (mm)')
-    ax2_vertical.set_ylabel('Illuminance (W/m²)')
+    ax2_vertical.set_title('Вертикальное сечение (по Y)')
+    ax2_vertical.set_xlabel('Y (мм)')
+    ax2_vertical.set_ylabel('Освещенность (Вт/м²)')
 
     fig2.tight_layout()
     canvas2.draw()
 
     fig2.savefig('cross_section.png')
 
-    mask = (X - x0)**2 + (Y - y0)**2 <= R**2
+    
     if np.any(mask):
         E_circle = E[mask]
         max_c = np.max(E_circle)
@@ -91,16 +104,16 @@ def compute_illum():
     E_yp = comp_E(x0, y0 + R)
     E_ym = comp_E(x0, y0 - R)
 
-    text = f"Center: {E_center:.10f}\nX +R: {E_xp:.10f}\nX -R: {E_xm:.10f}\nY +R: {E_yp:.10f}\nY -R: {E_ym:.10f}\nMax in circle: {max_c:.10f}\nMin in circle: {min_c:.10f}\nAvg in circle: {avg_c:.10f}"
+    text = f"Центр: {E_center:.10f} Вт/м²\nX +R: {E_xp:.10f} Вт/м²\nX -R: {E_xm:.10f} Вт/м²\nY +R: {E_yp:.10f} Вт/м²\nY -R: {E_ym:.10f} Вт/м²\nМакс. в круге: {max_c:.10f} Вт/м²\nМин. в круге: {min_c:.10f} Вт/м²\nСред. в круге: {avg_c:.10f} Вт/м²"
     label_results.config(text=text)
 
 root = tk.Tk()
-root.title("Illumination Calculator")
+root.title("Калькулятор освещенности")
 
 frame = ttk.Frame(root)
 frame.pack(pady=10)
 
-labels = ["W (mm):", "H (mm):", "Wres (pixels):", "Hres (pixels):", "xL (mm):", "yL (mm):", "zL (mm):", "I0 (W/sr):", "x0 (mm):", "y0 (mm):", "R (mm):"]
+labels = ["W (мм):", "H (мм):", "Wres (пикс.):", "Hres (пикс.):", "xL (мм):", "yL (мм):", "zL (мм):", "I0 (Вт/ср):", "x0 (мм):", "y0 (мм):", "R (мм):"]
 defaults = ["2000", "2000", "400", "400", "0", "0", "1000", "1000", "0", "0", "800"]
 entries = []
 
@@ -113,16 +126,16 @@ for i, label in enumerate(labels):
 
 entry_W, entry_H, entry_Wres, entry_Hres, entry_xL, entry_yL, entry_zL, entry_I0, entry_x0, entry_y0, entry_R = entries
 
-ttk.Button(frame, text="Compute", command=compute_illum).grid(row=11, column=0, columnspan=2, pady=10)
+ttk.Button(frame, text="Вычислить", command=compute_illum).grid(row=11, column=0, columnspan=2, pady=10)
 
 label_results = ttk.Label(root, text="", justify="left")
 label_results.pack(pady=10)
 
-fig1 = plt.Figure(figsize=(5, 4))
+fig1 = plt.Figure(figsize=(5, 5))
 canvas1 = FigureCanvasTkAgg(fig1, root)
 canvas1.get_tk_widget().pack(side="left", padx=10)
 
-fig2 = plt.Figure(figsize=(5, 4))
+fig2 = plt.Figure(figsize=(5, 5))
 canvas2 = FigureCanvasTkAgg(fig2, root)
 canvas2.get_tk_widget().pack(side="right", padx=10)
 
