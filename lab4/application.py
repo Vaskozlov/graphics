@@ -47,12 +47,12 @@ class BrightnessApp:
 
         check_row = points_row + 1
         self.perspective_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(
-            self.frame,
-            text="Перспектива",
-            variable=self.perspective_var,
-            command=self.compute,
-        ).grid(row=check_row, column=0, columnspan=2, sticky="w")
+        # ttk.Checkbutton(
+        #     self.frame,
+        #     text="Перспектива",
+        #     variable=self.perspective_var,
+        #     command=self.compute,
+        # ).grid(row=check_row, column=0, columnspan=2, sticky="w")
 
         slider_row = check_row + 1
         slider_frame = ttk.LabelFrame(self.frame, text="Сфера и Камера")
