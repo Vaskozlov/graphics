@@ -25,7 +25,7 @@ class ObjectManagerComponent:
         sphere_params['y'].insert(0, "-500" if sphere_id == 1 else "500" if sphere_id == 2 else "0")
         sphere_params['z'] = ttk.Entry(frame, width=5)
         sphere_params['z'].grid(row=row, column=3)
-        sphere_params['z'].insert(0, "-200" if sphere_id == 1 else "200" if sphere_id == 2 else "2500")
+        sphere_params['z'].insert(0, "-200" if sphere_id == 1 else "200" if sphere_id == 2 else "0")
         row += 1
 
         ttk.Label(frame, text="Радиус (мм):").grid(row=row, column=0)

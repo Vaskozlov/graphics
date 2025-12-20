@@ -2,8 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 
 class ScreenParamsComponent:
-    """Component for handling screen parameters inputs."""
-
     def __init__(self, parent_frame):
         self.screen_params = {}
         self.create_inputs(parent_frame)

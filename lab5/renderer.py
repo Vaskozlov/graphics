@@ -64,6 +64,7 @@ class RendererComponent:
 
     def compute_pixel(self, i, j, eye, sx, sy, sc, pixel_w, pixel_h, w_res, h_res, spheres, lights):
         ray_dir = self.compute_ray_direction(i, j, w_res, h_res, pixel_w, pixel_h, sc, sx, sy, eye)
+        
         if ray_dir is None:
             return np.zeros(3)
 
@@ -120,6 +121,7 @@ class RendererComponent:
             
             specular = sphere['ks'] * max(0, np.dot(normal, h)) ** sphere['shin']
             atten = light['i0'] / (dist_sample ** 2 + 1)
+            # atten = light['i0'] 
             light_contrib = light['color'] * atten * visibility
             color += sphere['color'] * light_contrib * diffuse + light_contrib * specular
             
